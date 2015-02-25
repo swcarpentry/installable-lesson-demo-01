@@ -9,8 +9,8 @@ setup(
     author = 'Greg Wilson',
     author_email = 'gvwilson@software-carpentry.org',
     license = 'CC-BY/MIT',
-    packages=['code'],
-    data_files=[('data', glob.glob('data/*.*')),
-                (os.curdir, glob.glob('*.html'))],
+    data_files=[('lessons/something/data', glob.glob('data/*.*')),
+                ('lessons/something/code', glob.glob('code/*.*')),
+                ('lessons/something', glob.glob('*.html'))],
     scripts=['scripts/lesson']
 )

@@ -4,10 +4,6 @@
 
 import sys
 
-USAGE = '''Usage: lesson command [args]
-{0}
-See <FIXME> for more documentation.'''
-
 
 def main(argv):
     '''Main command driver.'''
@@ -17,38 +13,43 @@ def main(argv):
     COMMANDS[cmd](*args)
 
 
-def usage():
-    '''Display usage and exit.'''
+def _help():
+    '''help: display help.'''
     print USAGE
 
 
-def files(lesson_name, root_dir=None):
-    '''Get local copy of files for lesson.'''
+def files(lesson, root_dir=None):
+    '''files <lesson_name> [<install_directory>]: make local copy of files for lesson.'''
     if root_dir is None:
         root_dir = os.curdir
-    print 'Copying files for "{0}" to "{1}".'.format(lesson_name, root_dir)
+    print 'Copying files for "{0}" to "{1}".'.format(lesson, root_dir)
 
 
-def view(lesson_name):
-    '''Open lesson in browser.'''
-    print 'Displaying "{0}" in browser.'.format(lesson_name)
+def view(lesson):
+    '''view <lesson>: open lesson in browser.'''
+    print 'Displaying "{0}" in browser.'.format(lesson)
 
 
 def require(condition, *messages):
     '''Check and fail.'''
     if not condition:
         for m in messages:
-            print m
-        usage = USAGE.format('\n'.join('  {:8}: {}'.format(c, COMMANDS[c].__doc__) for c in COMMANDS))
-        print usage
+            print >> sys.stderr, m
+        print >> sys.stderr, USAGE
         sys.exit(1)
 
 
 COMMANDS = {
-    'help'  : usage,
+    'help'  : _help,
     'view'  : view,
     'files' : files
 }
+
+
+USAGE = '''Usage: lesson command [args]
+{0}
+See https://github.com/gvwilson/lesson-installer-demo for more documentation.'''\
+.format('\n'.join('  {:8}: {}'.format(c, COMMANDS[c].__doc__) for c in COMMANDS))
 
 
 if __name__ == '__main__':

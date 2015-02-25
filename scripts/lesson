@@ -2,16 +2,24 @@
 
 '''Lesson management script.'''
 
+
 import sys
+import os
+
+LESSON_DIR = 'lessons' # lesson directory within installation directory
 
 
 def main(argv):
     '''Main command driver.'''
-    require(len(argv) > 1)
-    cmd, args = argv[1], argv[2:]
-    require(cmd in COMMANDS, 'Unknown command: "{0}"'.format(cmd))
-    COMMANDS[cmd](*args)
-
+    try:
+        assert len(argv) > 1, \
+            'Must have command name.'
+        cmd, args = argv[1], argv[2:]
+        assert cmd in COMMANDS, \
+            'Unknown command: "{0}"'.format(cmd)
+        COMMANDS[cmd](*args)
+    except Exception, e:
+        fail(str(e))
 
 def _help():
     '''help: display help.'''
@@ -25,18 +33,27 @@ def files(lesson, root_dir=None):
     print 'Copying files for "{0}" to "{1}".'.format(lesson, root_dir)
 
 
-def view(lesson):
+def view(*args):
     '''view <lesson>: open lesson in browser.'''
-    print 'Displaying "{0}" in browser.'.format(lesson)
+    assert len(args) == 1, \
+        'Command "view" requires exactly one lesson name'
+    lesson_name = args[0]
+    root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
+    lesson_dir = os.path.join(root, LESSON_DIR, lesson_name)
+    assert os.path.isdir(lesson_dir), \
+        'No such lesson "{0}" at "{1}"'.format(lesson_name, lesson_dir)
+    index_page = os.path.join(lesson_dir, 'index.html')
+    assert os.path.isfile(index_page), \
+        'No index.html page for lesson "{0}" at "{1}"'.format(lesson_name, index_page)
+    import webbrowser
+    webbrowser.open('file://' + index_page)
 
 
-def require(condition, *messages):
+def fail(message):
     '''Check and fail.'''
-    if not condition:
-        for m in messages:
-            print >> sys.stderr, m
-        print >> sys.stderr, USAGE
-        sys.exit(1)
+    print >> sys.stderr, message
+    print >> sys.stderr, USAGE
+    sys.exit(1)
 
 
 COMMANDS = {

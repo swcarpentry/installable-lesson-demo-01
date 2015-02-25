@@ -5,8 +5,16 @@
 
 import sys
 import os
+import glob
+import shutil
+import webbrowser
 
-LESSON_DIR = 'lessons' # lesson directory within installation directory
+
+# lesson directory within installation directory
+LESSON_DIR = 'lessons'
+
+# things to copy over for learners to work with
+RAW_MATERIALS = 'code data'.split()
 
 
 def main(argv):
@@ -19,41 +27,65 @@ def main(argv):
             'Unknown command: "{0}"'.format(cmd)
         COMMANDS[cmd](*args)
     except Exception, e:
-        fail(str(e))
+        print >> sys.stderr, e
+        print >> sys.stderr, USAGE
+        sys.exit(1)
+
 
 def _help():
     '''help: display help.'''
     print USAGE
 
 
-def files(lesson, root_dir=None):
+def files(*args):
     '''files <lesson_name> [<install_directory>]: make local copy of files for lesson.'''
-    if root_dir is None:
-        root_dir = os.curdir
-    print 'Copying files for "{0}" to "{1}".'.format(lesson, root_dir)
+
+    # Where is the lesson directory?
+    lesson_dir = _find_lesson_dir('files', args)
+
+    # Where are we installing files?
+    install_root = os.curdir
+    if len(args) > 1:
+        install_root = args[1]
+    assert os.path.isdir(install_root), \
+        'No such installation directory "{0}"'.format(install_root)
+
+    # Is everything a file or directory?
+    raw = [os.path.join(lesson_dir, r) for r in RAW_MATERIALS]
+    for path in raw:
+        assert os.path.isfile(path) or os.path.isdir(path), \
+            'Unrecognized source object "{0}"'.format(path)
+
+    # Install.
+    for (name, path) in zip(RAW_MATERIALS, raw):
+        if os.path.isfile(path):
+            shutil.copy(path, install_root)
+        elif os.path.isdir(path):
+            shutil.copytree(path, os.path.join(install_root, name))
 
 
 def view(*args):
     '''view <lesson>: open lesson in browser.'''
-    assert len(args) == 1, \
-        'Command "view" requires exactly one lesson name'
+
+    # Where is the lesson directory?
+    lesson_dir = _find_lesson_dir('view', args)
+
+    index_page = os.path.join(lesson_dir, 'index.html')
+    assert os.path.isfile(index_page), \
+        'No index.html page for lesson "{0}" at "{1}"'.format(lesson_name, index_page)
+    webbrowser.open('file://' + index_page)
+
+
+def _find_lesson_dir(command, args):
+    '''Turn lesson name into lesson root directory.'''
+    assert len(args) >= 1, \
+        'Command "{0}" requires lesson name'.format(command)
     lesson_name = args[0]
     root = os.path.abspath(os.path.join(os.path.dirname(__file__), os.pardir))
     lesson_dir = os.path.join(root, LESSON_DIR, lesson_name)
     assert os.path.isdir(lesson_dir), \
         'No such lesson "{0}" at "{1}"'.format(lesson_name, lesson_dir)
-    index_page = os.path.join(lesson_dir, 'index.html')
-    assert os.path.isfile(index_page), \
-        'No index.html page for lesson "{0}" at "{1}"'.format(lesson_name, index_page)
-    import webbrowser
-    webbrowser.open('file://' + index_page)
-
-
-def fail(message):
-    '''Check and fail.'''
-    print >> sys.stderr, message
-    print >> sys.stderr, USAGE
-    sys.exit(1)
+    return lesson_dir
 
 
 COMMANDS = {

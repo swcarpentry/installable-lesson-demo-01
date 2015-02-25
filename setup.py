@@ -11,6 +11,7 @@ setup(
     license = 'CC-BY/MIT',
     data_files=[('lessons/something/data', glob.glob('data/*.*')),
                 ('lessons/something/code', glob.glob('code/*.*')),
-                ('lessons/something', glob.glob('*.html'))],
+                ('lessons/something',      glob.glob('*.html')),
+                ('lessons/something/css',  glob.glob('css/*.*'))],
     scripts=['scripts/lesson']
 )

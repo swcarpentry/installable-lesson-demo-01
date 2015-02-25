@@ -50,6 +50,10 @@ def files(*args):
     assert os.path.isdir(install_root), \
         'No such installation directory "{0}"'.format(install_root)
 
+    # Don't copy into a Git repository.
+    assert not os.path.exists(os.path.join(install_root, '.git')), \
+        'Refusing to install into "{0}" because it is a Git repository'.format(lesson_dir)
+
     # Is everything a file or directory?
     raw = [os.path.join(lesson_dir, r) for r in RAW_MATERIALS]
     for path in raw:
